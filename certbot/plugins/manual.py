@@ -53,6 +53,9 @@ Make sure your web server displays the following content at
 If you don't have HTTP server configured, you can run the following
 command on the target server (as root):
 
+{command}
+"""
+    _HTTP_COMMAND = """\
 mkdir -p /tmp/certbot/public_html/{achall.URI_ROOT_PATH}
 cd /tmp/certbot/public_html
 printf "%s" {validation} > {achall.URI_ROOT_PATH}/{encoded_token}
@@ -135,15 +138,17 @@ s.serve_forever()"
                 port = response.port
             else:
                 port = self.config.http01_port
-            msg = self._HTTP_INSTRUCTIONS.format(
+            uri = achall.chall.uri(achall.domain)
+            command = self._HTTP_COMMAND.format(
                 achall=achall, encoded_token=achall.chall.encode('token'),
-                response=response, port=port,
-                uri=achall.chall.uri(achall.domain), validation=validation)
+                port=port, uri=uri, validation=validation)
+            msg = self._HTTP_INSTRUCTIONS.format(
+                command=command, uri=uri, validation=validation)
         else:
             assert isinstance(achall.chall, challenges.DNS01)
             msg = self._DNS_INSTRUCTIONS.format(
                 domain=achall.validation_domain_name(achall.domain),
-                response=response, validation=validation)
+                validation=validation)
         display = zope.component.getUtility(interfaces.IDisplay)
         display.notification(msg, wrap=False)
 
